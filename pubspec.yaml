@@ -1,0 +1,17 @@
+name: ars_sms_retriever
+description: Flutter plugin for retrieving OTP code sent in sms automatically and without getting SMS permission in Android.
+version: 1.0.0
+author: Ali Raghebi <aliraghebiii@gmail.com>
+homepage: https://github.com/arsamme/flutter-sms-retriever
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    androidPackage: me.arsam.sms_retriever
+    pluginClass: SmsRetrieverPlugin

@@ -1,0 +1,20 @@
+name: sms_retriever_example
+description: Example app for ars_sms_retriever package
+publish_to: 'none'
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  ars_sms_retriever:
+    path: ../
+
+flutter:
+  uses-material-design: true
