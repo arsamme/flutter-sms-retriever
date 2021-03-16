@@ -13,5 +13,7 @@ dependencies:
 
 flutter:
   plugin:
-    androidPackage: me.arsam.sms_retriever
-    pluginClass: SmsRetrieverPlugin
+    platforms:
+      android:
+        package: me.arsam.sms_retriever
+        pluginClass: SmsRetrieverPlugin
