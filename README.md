@@ -44,7 +44,7 @@ ArsSmsRetriever.stopListening();
 SMS format should be like this :
 
 ``` text
-Your example code is:
-123456
+Your example code is: 123456
+
 appSignature
 ```
