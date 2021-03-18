@@ -92,8 +92,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
         if (requestCode == CREDENTIAL_PICKER_REQUEST) {
             if (resultCode == RESULT_OK) {
                 val credential: Credential = data!!.getParcelableExtra(Credential.EXTRA_KEY)
-                Log.i("ars tag", credential.id)
-                pendingResult?.success("09027777254")
+                pendingResult?.success(credential.id)
             }
         }
         return false
