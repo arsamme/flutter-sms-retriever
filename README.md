@@ -21,7 +21,7 @@ import 'package:android_sms_retriever/android_sms_retriever.dart';
 ```
 
 ### App signature
-To retrieve a app signature. App signature should be placed at end of SMS so SmsRetriever API can verify SMS is sent from your server.
+Use this function to get application signature. App signature should be placed at end of SMS so SmsRetriever API can verify SMS is sent from your server.
 ```dart
 String appSignature = await AndroidSmsRetriever.getAppSignature();
 ```
@@ -54,13 +54,13 @@ await AndroidSmsRetriever.deleteStoredPhoneNumber('https://arsam.me','0902777725
 ```
 
 ### Start listening for SMS
-To start listening for an incoming SMS
+Use this function to start listening for an incoming SMS. When sms received message will be returned.
 ```dart
-String smsCode = await AndroidSmsRetriever.startSmsListener();
+String message = await AndroidSmsRetriever.startSmsListener();
 ```
 
 ### Close receiver after getting SMS
-Stop listening after getting the SMS
+Stop listening for SMS. It's better to stop listener after getting message.
 ```dart
 AndroidSmsRetriever.stopSmsListener();
 ```
