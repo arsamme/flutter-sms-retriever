@@ -1,5 +1,5 @@
+import 'package:android_sms_retriever/android_sms_retriever.dart';
 import 'package:flutter/material.dart';
-import 'package:ars_sms_retriever/ars_sms_retriever.dart';
 
 void main() => runApp(MyApp());
 
@@ -9,55 +9,158 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  String _applicationSignature = "";
   String _smsCode = "";
-  bool isListening = false;
+  String _requestedPhoneNumber = "";
+  String _storedPhoneNumber = "";
 
-  getCode(String sms) {
+  bool isListening = false;
+  bool consentLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    AndroidSmsRetriever.getAppSignature().then((value) {
+      setState(() {
+        _applicationSignature = value;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('SMS retriever example app'),
+          backgroundColor: Colors.blue,
+        ),
+        body: Builder(
+          builder: (BuildContext context) {
+            return Padding(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('Application Signature: $_applicationSignature'),
+                  Container(
+                    margin: const EdgeInsets.only(top: 16),
+                    child:
+                        Text('Requested Phone Number: $_requestedPhoneNumber'),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 16),
+                    child: Text('Stored Phone Number: $_storedPhoneNumber'),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 16),
+                    child: Text('Received SMS code: $_smsCode \n'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      AndroidSmsRetriever.requestPhoneNumber().then((value) {
+                        setState(() {
+                          _requestedPhoneNumber = value;
+                        });
+                      });
+                    },
+                    child: Text('Request Phone Number'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await AndroidSmsRetriever.storePhoneNumber(
+                        'https://arsam.me',
+                        '09034562774',
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Phone number saved!'),
+                        ),
+                      );
+                    },
+                    child: Text('Store Phone Number'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _storedPhoneNumber = 'RETRIEVING';
+                      });
+                      AndroidSmsRetriever.retrieveStoredPhoneNumber(
+                        'https://arsam.me',
+                      ).then((value) {
+                        setState(() {
+                          _storedPhoneNumber = value;
+                        });
+                      });
+                    },
+                    child: Text('Retrieve Stored Phone Number'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await AndroidSmsRetriever.deleteStoredPhoneNumber(
+                        'https://arsam.me',
+                        '09034562774',
+                      );
+
+                      setState(() {
+                        _storedPhoneNumber = 'DELETED';
+                      });
+                    },
+                    child: Text('Delete Stored Phone Number'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _smsCode = 'LISTENING';
+                      });
+
+                      AndroidSmsRetriever.startSmsListener().then((value) {
+                        setState(() {
+                          final intRegex = RegExp(r'\d+', multiLine: true);
+                          final code =
+                              intRegex.allMatches(value).first.group(0);
+                          _smsCode = code;
+                          AndroidSmsRetriever.stopSmsListener();
+                        });
+                      });
+                    },
+                    child: Text('Start SMS Listener'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _smsCode = 'Waiting for consent';
+                      });
+
+                      AndroidSmsRetriever.requestOneTimeConsentSms()
+                          .then((value) {
+                        setState(() {
+                          final intRegex = RegExp(r'\d+', multiLine: true);
+                          final code =
+                              intRegex.allMatches(value).first.group(0);
+                          _smsCode = code;
+                        });
+                      });
+                    },
+                    child: Text('Request One Time SMS Consent'),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  String getCode(String sms) {
     if (sms != null) {
       final intRegex = RegExp(r'\d+', multiLine: true);
       final code = intRegex.allMatches(sms).first.group(0);
       return code;
     }
     return "NO SMS";
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Sms retriever example app'),
-          backgroundColor: isListening ? Colors.green : Colors.amber,
-        ),
-        body: new Center(
-          child: new Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              FutureBuilder(
-                builder: (context, data) {
-                  return Text('SIGNATURE: ${data.data}');
-                },
-                future: ArsSmsRetriever.getAppSignature(),
-              ),
-              Text('SMS CODE: $_smsCode \n'),
-              Text(
-                  'Press the button below to start\nlistening for an incoming SMS'),
-              new RaisedButton(
-                onPressed: () async {
-                  isListening = true;
-                  setState(() {});
-                  String smsCode = await ArsSmsRetriever.startListening();
-                  _smsCode = getCode(smsCode);
-                  isListening = false;
-                  setState(() {});
-                  ArsSmsRetriever.stopListening();
-                },
-                child: Text(isListening ? "STOP" : "START"),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

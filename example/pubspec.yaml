@@ -13,7 +13,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  ars_sms_retriever:
+  android_sms_retriever:
     path: ../
 
 flutter:
