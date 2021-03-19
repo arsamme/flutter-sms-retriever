@@ -1,11 +1,11 @@
 name: android_sms_retriever
 description: Flutter plugin for retrieving OTP code sent in sms automatically and without getting SMS permission in Android.
-version: 1.0.3
+version: 1.1.0
 homepage: https://github.com/arsamme/flutter-sms-retriever
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
-  flutter: ">=1.20.0"
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
 
 dependencies:
   flutter:

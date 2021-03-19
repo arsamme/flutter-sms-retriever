@@ -10,8 +10,9 @@ class AndroidSmsRetriever {
 
   /// Use this function to get application signature. App signature should be placed at end of SMS so SmsRetriever API can verify SMS is sent from your server.
   static Future<String> getAppSignature() async {
-    final String smsCode = await _channel.invokeMethod('getAppSignature');
-    return smsCode;
+    final String applicationSignature =
+        await _channel.invokeMethod('getAppSignature');
+    return applicationSignature;
   }
 
   /// You can request android to open a dialog with user's phone numbers, then user can select one.
@@ -41,7 +42,9 @@ class AndroidSmsRetriever {
   /// To delete stored phone number use this function.
   /// You should pass your application's website URL and phone number to this function.
   static Future<void> deleteStoredPhoneNumber(
-      String url, String phoneNumber) async {
+    String url,
+    String phoneNumber,
+  ) async {
     await _channel.invokeMethod(
         'deleteStoredPhoneNumber', {'url': url, 'phoneNumber': phoneNumber});
   }
@@ -60,7 +63,7 @@ class AndroidSmsRetriever {
   /// Using this function, when sms received android will ask user to let application use message and extract code, even if sms message does not contain application signature.
   /// You can pass sender phone number in order to detect messages sent from specific sender.
   static Future<String> requestOneTimeConsentSms(
-      {String senderPhoneNumber}) async {
+      {String? senderPhoneNumber}) async {
     final String smsCode = await _channel.invokeMethod(
         'requestOneTimeConsentSms', {'senderPhoneNumber': senderPhoneNumber});
     return smsCode;
