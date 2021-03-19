@@ -4,7 +4,7 @@
 Flutter plugin for retrieving OTP code sent in sms automatically and without getting SMS permission in Android. This package has support for Smart Lock credentials, you can use for storing user's phone number and retrieving whenever you want. Read more [here](https://developers.google.com/identity/sms-retriever/)
 
 ## Example
-[!img](./example/assets/example.mp4)
+![example](./example/assets/example.mp4)
 
 ## Getting Started
 
