@@ -12,7 +12,7 @@ Flutter plugin for retrieving OTP code sent in sms automatically and without get
 Install
 ```yaml
 dependencies:
-  android_sms_retriever: ^1.0.2
+  android_sms_retriever: ^1.1.1
 ```
 
 Import
