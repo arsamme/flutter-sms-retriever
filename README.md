@@ -5,7 +5,7 @@ Flutter plugin for retrieving OTP code sent in sms automatically and without get
 
 ## Example
 
-https://user-images.githubusercontent.com/21082113/111797316-4a8ffe00-88de-11eb-881c-4cb97ccc82af.mp4
+![example](https://user-images.githubusercontent.com/21082113/111797316-4a8ffe00-88de-11eb-881c-4cb97ccc82af.mp4)
 
 
 ## Getting Started
