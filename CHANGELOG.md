@@ -1,3 +1,6 @@
+## 1.2.1
+- Fix twice reply issue
+
 ## 1.2.0
 - Fix return errors.
 
