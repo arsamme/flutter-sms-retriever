@@ -68,8 +68,9 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                 val signatures = AppSignatureHelper(context).getAppSignatures()
                 if (signatures.size > 0) {
                     result.success(signatures[0])
+                } else {
+                    result.success(null)
                 }
-                result.success(null)
             }
             "requestPhoneNumber" -> {
                 pendingResult = result
