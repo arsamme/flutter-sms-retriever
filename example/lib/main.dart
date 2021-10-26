@@ -23,7 +23,7 @@ class _MyAppState extends State<MyApp> {
 
     AndroidSmsRetriever.getAppSignature().then((value) {
       setState(() {
-        _applicationSignature = value;
+        _applicationSignature = value ?? 'Signature Not Found';
       });
     });
   }
@@ -62,7 +62,8 @@ class _MyAppState extends State<MyApp> {
                     onPressed: () {
                       AndroidSmsRetriever.requestPhoneNumber().then((value) {
                         setState(() {
-                          _requestedPhoneNumber = value;
+                          _requestedPhoneNumber =
+                              value ?? 'Phone Number Not Found';
                         });
                       });
                     },
@@ -91,7 +92,8 @@ class _MyAppState extends State<MyApp> {
                         'https://arsam.me',
                       ).then((value) {
                         setState(() {
-                          _storedPhoneNumber = value;
+                          _storedPhoneNumber =
+                              value ?? 'Phone Number Not Found';
                         });
                       });
                     },
@@ -119,9 +121,11 @@ class _MyAppState extends State<MyApp> {
                       AndroidSmsRetriever.startSmsListener().then((value) {
                         setState(() {
                           final intRegex = RegExp(r'\d+', multiLine: true);
-                          final code =
-                              intRegex.allMatches(value).first.group(0);
-                          _smsCode = code;
+                          final code = intRegex
+                              .allMatches(value ?? 'Phone Number Not Found')
+                              .first
+                              .group(0);
+                          _smsCode = code ?? 'NO CODE';
                           AndroidSmsRetriever.stopSmsListener();
                         });
                       });
@@ -138,9 +142,11 @@ class _MyAppState extends State<MyApp> {
                           .then((value) {
                         setState(() {
                           final intRegex = RegExp(r'\d+', multiLine: true);
-                          final code =
-                              intRegex.allMatches(value).first.group(0);
-                          _smsCode = code;
+                          final code = intRegex
+                              .allMatches(value ?? 'Phone Number Not Found')
+                              .first
+                              .group(0);
+                          _smsCode = code ?? 'NO CODE';
                         });
                       });
                     },
@@ -156,11 +162,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   String getCode(String sms) {
-    if (sms != null) {
-      final intRegex = RegExp(r'\d+', multiLine: true);
-      final code = intRegex.allMatches(sms).first.group(0);
-      return code;
-    }
-    return "NO SMS";
+    final intRegex = RegExp(r'\d+', multiLine: true);
+    final code = intRegex.allMatches(sms).first.group(0);
+    return code ?? 'NO CODE';
   }
 }

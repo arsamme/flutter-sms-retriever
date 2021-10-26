@@ -25,7 +25,6 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry
 
-
 class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, PluginRegistry.ActivityResultListener {
 
     private lateinit var context: Context
@@ -66,8 +65,11 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "getAppSignature" -> {
-                val signature = AppSignatureHelper(context).getAppSignatures()[0]
-                result.success(signature)
+                val signatures = AppSignatureHelper(context).getAppSignatures()
+                if (signatures.size > 0) {
+                    result.success(signatures[0])
+                }
+                result.success(null)
             }
             "requestPhoneNumber" -> {
                 pendingResult = result
@@ -94,13 +96,13 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                                 } catch (exception: IntentSender.SendIntentException) {
                                     // Could not resolve the request
                                     Log.e(TAG, "Failed to send resolution.", exception)
-                                    result.error("credential-failure", null, null)
+                                    result.success(null)
                                 }
                             } else {
-                                result.error("credential-failure", null, null)
+                                result.success(null)
                             }
                         } else {
-                            result.error("credential-failure", e?.message, e)
+                            result.success(null)
                         }
                     }
                 }
@@ -121,7 +123,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                                         return@OnCompleteListener
                                     }
                                 }
-                                result.error("credential-failure", null, null)
+                                result.success(null)
                             } else {
                                 val e = task.exception
                                 if (e is ResolvableApiException) {
@@ -134,13 +136,13 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                                         } catch (exception: IntentSender.SendIntentException) {
                                             // Could not resolve the request
                                             Log.e(TAG, "Failed to send resolution.", exception)
-                                            result.error("credential-failure", null, null)
+                                            result.success(null)
                                         }
                                     } else {
-                                        result.error("credential-failure", null, null)
+                                        result.success(null)
                                     }
                                 } else {
-                                    result.error("credential-failure", null, null)
+                                    result.success(null)
                                 }
                             }
                         })
@@ -151,12 +153,8 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                 val credential: Credential = Credential.Builder(phoneNumber).setAccountType(url).build()
 
                 val mCredentialsClient: CredentialsClient = Credentials.getClient(context)
-                mCredentialsClient.delete(credential).addOnCompleteListener { deleteTask ->
-                    if (deleteTask.isSuccessful) {
-                        result.success(null)
-                    } else {
-                        result.error("credential-failure", null, null)
-                    }
+                mCredentialsClient.delete(credential).addOnCompleteListener {
+                    result.success(null)
                 }
             }
             "startSmsListener" -> {
@@ -202,7 +200,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                             return false
                         }
                     }
-                    pendingResult?.error("credentials-failure", null, null)
+                    pendingResult?.success(null)
                 }
             }
             SMS_CONSENT_REQUEST -> {
@@ -219,7 +217,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                 } else {
                     // Consent denied. User can type OTC manually.
                     if (pendingResult != null) {
-                        pendingResult!!.error("consent-denied", null, null)
+                        pendingResult?.success(null)
                     }
                 }
             }
@@ -230,7 +228,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                     }
                 } else {
                     if (pendingResult != null) {
-                        pendingResult!!.error("denied-by-user", null, null)
+                        pendingResult?.success(null)
                     }
                 }
             }
@@ -246,10 +244,10 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                         }
                     }
                     if (pendingResult != null) {
-                        pendingResult!!.error("credentials-failure", null, null)
+                        pendingResult?.success(null)
                     }
                 } else {
-                    pendingResult?.error("denied-by-user", null, null)
+                    pendingResult?.success(null)
                 }
             }
         }
@@ -286,7 +284,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                     }
 
                     CommonStatusCodes.TIMEOUT -> {
-                        pendingResult?.error("timeout", null, null);
+                        pendingResult?.success(null)
                     }
                 }
             }
@@ -310,12 +308,12 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
                                 this@SmsRetrieverPlugin.activity!!.startActivityForResult(consentIntent, SMS_CONSENT_REQUEST)
                             }
                         } catch (e: ActivityNotFoundException) {
-                            pendingResult?.error("consent-failure", null, null)
+                            pendingResult?.success(null)
                         }
                     }
 
                     CommonStatusCodes.TIMEOUT -> {
-                        pendingResult?.error("timeout", null, null);
+                        pendingResult?.success(null)
                     }
                 }
             }
