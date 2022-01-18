@@ -16,7 +16,7 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.tasks.OnCompleteListener
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -28,7 +28,7 @@ import io.flutter.plugin.common.PluginRegistry
 class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, PluginRegistry.ActivityResultListener {
 
     private lateinit var context: Context
-    private var activity: FlutterActivity? = null
+    private var activity: FlutterFragmentActivity? = null
 
     private lateinit var channel: MethodChannel
     private var pendingResult: MethodChannel.Result? = null
@@ -55,7 +55,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, Plug
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        activity = binding.activity as FlutterActivity
+        activity = binding.activity as FlutterFragmentActivity
         binding.addActivityResultListener(this)
     }
 
