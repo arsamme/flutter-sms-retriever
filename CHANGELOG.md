@@ -1,3 +1,6 @@
+## 1.2.2
+- Replace `FlutterActivity` with `FlutterFragmentActivity` according to [issue 3](https://github.com/arsamme/flutter-sms-retriever/issues/3) and [PR 4](https://github.com/arsamme/flutter-sms-retriever/pull/4)
+
 ## 1.2.1
 - Fix twice reply issue
 
