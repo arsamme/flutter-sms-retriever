@@ -12,7 +12,7 @@ Flutter plugin for retrieving OTP code sent in sms automatically and without get
 Install
 ```yaml
 dependencies:
-  android_sms_retriever: ^1.2.2
+  android_sms_retriever: ^1.2.3
 ```
 
 Import
@@ -29,7 +29,7 @@ String appSignature = await AndroidSmsRetriever.getAppSignature();
 ### Request phone number
 You can request android to open a dialog with user's phone numbers, then user can select one.
 ```dart
-String phoneNumber = await AndroidSmsRetriever.requestPhoneNumber();
+String? phoneNumber = await AndroidSmsRetriever.requestPhoneNumber();
 ```
 
 ### Store phone number
@@ -43,7 +43,7 @@ await AndroidSmsRetriever.storePhoneNumber('https://arsam.me','09027777254');
 To retrieve stored phone number use this function.
 You should pass your application's website URL to this function.
 ```dart
-String phoneNumber = await AndroidSmsRetriever.retrieveStoredPhoneNumber('https://arsam.me');
+String? phoneNumber = await AndroidSmsRetriever.retrieveStoredPhoneNumber('https://arsam.me');
 ```
 
 ### Delete stored phone number
@@ -56,7 +56,7 @@ await AndroidSmsRetriever.deleteStoredPhoneNumber('https://arsam.me','0902777725
 ### Start listening for SMS
 Use this function to start listening for an incoming SMS. When sms received message will be returned.
 ```dart
-String message = await AndroidSmsRetriever.startSmsListener();
+String? message = await AndroidSmsRetriever.startSmsListener();
 ```
 
 ### Close receiver after getting SMS
@@ -69,7 +69,7 @@ AndroidSmsRetriever.stopSmsListener();
 Using this function, when sms received android will ask user to let application use message and extract code, even if sms message does not contain application signature.
 You can pass sender phone number in order to detect messages sent from specific sender.
 ```dart
-String smsCode = await AndroidSmsRetriever.requestOneTimeConsentSms('+9850003001');
+String? smsCode = await AndroidSmsRetriever.requestOneTimeConsentSms('+9850003001');
 ```
 
 #### Note
