@@ -50,6 +50,10 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     override fun onDetachedFromActivity() {
         activity = null
+        context.unregisterReceiver(receiver)
+        ignoreIllegalState {
+            pendingResult?.success(null)
+        }
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
