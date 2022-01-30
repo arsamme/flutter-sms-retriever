@@ -33,8 +33,9 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     private lateinit var channel: MethodChannel
     private var pendingResult: MethodChannel.Result? = null
+    private var smsReceiver: SmsBroadcastReceiver? = null
+    private var consentReceiver: ConsentBroadcastReceiver? = null
 
-    private var receiver: SmsBroadcastReceiver? = null
     var sms: String? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -50,10 +51,12 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     override fun onDetachedFromActivity() {
         activity = null
-        context.unregisterReceiver(receiver)
-        ignoreIllegalState {
-            pendingResult?.success(null)
-        }
+
+        // Stop receiving messages
+        unregisterReceiver(smsReceiver)
+
+        // Stop receiving consent messages
+        unregisterReceiver(consentReceiver)
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
@@ -82,8 +85,8 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 requestPhoneNumber()
             }
             "storePhoneNumber" -> {
-                val url: String? = call.argument<String>("url")
-                val phoneNumber: String? = call.argument<String>("phoneNumber")
+                val url: String? = call.argument<String?>("url")
+                val phoneNumber: String? = call.argument<String?>("phoneNumber")
                 val credential: Credential =
                     Credential.Builder(phoneNumber).setAccountType(url).build()
 
@@ -169,29 +172,32 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 }
             }
             "startSmsListener" -> {
-                receiver = SmsBroadcastReceiver()
-                context.registerReceiver(receiver, IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION))
-                val task = SmsRetriever.getClient(context).startSmsRetriever()
-                task.addOnSuccessListener {
-                    pendingResult = result
-                }
+                pendingResult = result
+                smsReceiver = SmsBroadcastReceiver()
+                context.registerReceiver(
+                    smsReceiver,
+                    IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
+                )
+                SmsRetriever.getClient(context).startSmsRetriever()
             }
             "stopSmsListener" -> {
-                try {
-                    context.unregisterReceiver(receiver)
-                    result.success(null)
-                } catch (e: Throwable) {
-                    Log.e(javaClass::getSimpleName.name, e.toString())
-                }
+                unregisterReceiver(smsReceiver)
+                result.success(null)
             }
-            "requestOneTimeConsentSms" -> {
-                val receiver = ConsentBroadcastReceiver()
-                context.registerReceiver(receiver, IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION))
-                val task = SmsRetriever.getClient(context)
-                    .startSmsUserConsent(call.argument("senderPhoneNumber"))
-                task.addOnSuccessListener {
-                    pendingResult = result
-                }
+            "startConsentListener" -> {
+                pendingResult = result
+                consentReceiver = ConsentBroadcastReceiver()
+                context.registerReceiver(
+                    consentReceiver,
+                    IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
+                )
+                SmsRetriever.getClient(context).startSmsUserConsent(
+                    call.argument("senderPhoneNumber")
+                )
+            }
+            "stopConsentListener" -> {
+                unregisterReceiver(consentReceiver)
+                result.success(null)
             }
             else -> result.notImplemented()
         }
@@ -290,6 +296,27 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         }
     }
 
+    private fun unregisterReceiver(receiver: BroadcastReceiver?) {
+        try {
+            receiver?.let {
+                context.unregisterReceiver(it)
+            }
+        } catch (exception: Exception) {
+            Log.e(TAG, "Unregistering receiver failed.", exception)
+        }
+    }
+
+    private fun ignoreIllegalState(fn: () -> Unit) {
+        try {
+            fn()
+        } catch (e: IllegalStateException) {
+            Log.d(
+                TAG,
+                "ignoring exception: $e. See https://github.com/flutter/flutter/issues/29092 for details."
+            )
+        }
+    }
+
     /**
      * BroadcastReceiver to wait for SMS messages. This can be registered either
      * in the AndroidManifest or at runtime.  Should filter Intents on
@@ -354,17 +381,6 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     }
                 }
             }
-        }
-    }
-
-    fun ignoreIllegalState(fn: () -> Unit) {
-        try {
-            fn()
-        } catch (e: IllegalStateException) {
-            Log.d(
-                TAG,
-                "ignoring exception: $e. See https://github.com/flutter/flutter/issues/29092 for details."
-            )
         }
     }
 
