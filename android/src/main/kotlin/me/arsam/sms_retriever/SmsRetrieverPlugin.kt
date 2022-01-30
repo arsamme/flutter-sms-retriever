@@ -1,5 +1,6 @@
 package me.arsam.sms_retriever
 
+import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.app.PendingIntent
 import android.content.*
@@ -16,7 +17,7 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.tasks.OnCompleteListener
-import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -28,10 +29,11 @@ import io.flutter.plugin.common.PluginRegistry
 class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     PluginRegistry.ActivityResultListener {
 
-    private lateinit var context: Context
-    private var activity: FlutterFragmentActivity? = null
+    private lateinit var mContext: Context
+    private var mActivity: FlutterActivity? = null
+    private var mBinding: ActivityPluginBinding? = null
+    private var mChannel: MethodChannel? = null
 
-    private lateinit var channel: MethodChannel
     private var pendingResult: MethodChannel.Result? = null
     private var smsReceiver: SmsBroadcastReceiver? = null
     private var consentReceiver: ConsentBroadcastReceiver? = null
@@ -39,41 +41,67 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     var sms: String? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        context = flutterPluginBinding.applicationContext
+        mContext = flutterPluginBinding.applicationContext
 
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "ars_sms_retriever/method_ch")
-        channel.setMethodCallHandler(this)
+        mChannel =
+            MethodChannel(flutterPluginBinding.binaryMessenger, "ars_sms_retriever/method_ch")
+        mChannel?.setMethodCallHandler(this)
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        channel.setMethodCallHandler(null)
+        unregisterReceiver(smsReceiver)
+        unregisterReceiver(consentReceiver)
+        ignoreIllegalState {
+            pendingResult?.success(null)
+        }
+
+        mChannel?.setMethodCallHandler(null)
+        mChannel = null
+        mActivity = null
+        mBinding?.removeActivityResultListener(this)
+        mBinding = null
     }
 
     override fun onDetachedFromActivity() {
-        activity = null
-
-        // Stop receiving messages
         unregisterReceiver(smsReceiver)
-
-        // Stop receiving consent messages
         unregisterReceiver(consentReceiver)
+        ignoreIllegalState {
+            pendingResult?.success(null)
+        }
+
+        mActivity = null
+        mBinding?.removeActivityResultListener(this)
+        mBinding = null
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        mActivity = binding.activity as FlutterActivity
+        mBinding = binding
+        binding.addActivityResultListener(this)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        activity = binding.activity as FlutterFragmentActivity
+        mActivity = binding.activity as FlutterActivity
+        mBinding = binding
         binding.addActivityResultListener(this)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
+        unregisterReceiver(smsReceiver)
+        unregisterReceiver(consentReceiver)
+        ignoreIllegalState {
+            pendingResult?.success(null)
+        }
+
+        mActivity = null
+        mBinding?.removeActivityResultListener(this)
+        mBinding = null
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "getAppSignature" -> {
-                val signatures = AppSignatureHelper(context).getAppSignatures()
+                val signatures = AppSignatureHelper(mContext).getAppSignatures()
                 if (signatures.size > 0) {
                     result.success(signatures[0])
                 } else {
@@ -90,7 +118,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val credential: Credential =
                     Credential.Builder(phoneNumber).setAccountType(url).build()
 
-                val mCredentialsClient = Credentials.getClient(context)
+                val mCredentialsClient = Credentials.getClient(mContext)
                 mCredentialsClient.save(credential).addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         result.success(null)
@@ -102,7 +130,12 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                             if (e.statusCode == RESOLUTION_REQUIRED) {
                                 try {
                                     pendingResult = result
-                                    e.startResolutionForResult(activity, STORE_PHONE_NUMBER_REQUEST)
+                                    if (mActivity != null) {
+                                        e.startResolutionForResult(
+                                            mActivity as Activity,
+                                            STORE_PHONE_NUMBER_REQUEST
+                                        )
+                                    }
                                 } catch (exception: IntentSender.SendIntentException) {
                                     // Could not resolve the request
                                     Log.e(TAG, "Failed to send resolution.", exception)
@@ -118,9 +151,9 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 }
             }
             "retrieveStoredPhoneNumber" -> {
-                val url: String? = call.argument<String>("url")
+                val url: String? = call.argument<String?>("url")
 
-                val mCredentialsClient: CredentialsClient = Credentials.getClient(context)
+                val mCredentialsClient: CredentialsClient = Credentials.getClient(mContext)
                 val mCredentialRequest = CredentialRequest.Builder().setAccountTypes(url).build()
                 mCredentialsClient.request(mCredentialRequest).addOnCompleteListener(
                     OnCompleteListener { task ->
@@ -142,10 +175,12 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                                 if (e.statusCode == RESOLUTION_REQUIRED) {
                                     try {
                                         pendingResult = result
-                                        e.startResolutionForResult(
-                                            activity,
-                                            RETRIEVE_PHONE_NUMBER_REQUEST
-                                        )
+                                        if (mActivity != null) {
+                                            e.startResolutionForResult(
+                                                mActivity as Activity,
+                                                RETRIEVE_PHONE_NUMBER_REQUEST
+                                            )
+                                        }
                                     } catch (exception: IntentSender.SendIntentException) {
                                         // Could not resolve the request
                                         Log.e(TAG, "Failed to send resolution.", exception)
@@ -161,12 +196,12 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     })
             }
             "deleteStoredPhoneNumber" -> {
-                val url: String? = call.argument<String>("url")
-                val phoneNumber: String? = call.argument<String>("phoneNumber")
+                val url: String? = call.argument<String?>("url")
+                val phoneNumber: String? = call.argument<String?>("phoneNumber")
                 val credential: Credential =
                     Credential.Builder(phoneNumber).setAccountType(url).build()
 
-                val mCredentialsClient: CredentialsClient = Credentials.getClient(context)
+                val mCredentialsClient: CredentialsClient = Credentials.getClient(mContext)
                 mCredentialsClient.delete(credential).addOnCompleteListener {
                     result.success(null)
                 }
@@ -174,11 +209,11 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             "startSmsListener" -> {
                 pendingResult = result
                 smsReceiver = SmsBroadcastReceiver()
-                context.registerReceiver(
+                mContext.registerReceiver(
                     smsReceiver,
                     IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
                 )
-                SmsRetriever.getClient(context).startSmsRetriever()
+                SmsRetriever.getClient(mContext).startSmsRetriever()
             }
             "stopSmsListener" -> {
                 unregisterReceiver(smsReceiver)
@@ -187,11 +222,11 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             "startConsentListener" -> {
                 pendingResult = result
                 consentReceiver = ConsentBroadcastReceiver()
-                context.registerReceiver(
+                mContext.registerReceiver(
                     consentReceiver,
                     IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
                 )
-                SmsRetriever.getClient(context).startSmsUserConsent(
+                SmsRetriever.getClient(mContext).startSmsUserConsent(
                     call.argument("senderPhoneNumber")
                 )
             }
@@ -202,7 +237,6 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             else -> result.notImplemented()
         }
     }
-
 
     // Obtain the phone number from the result
     override fun onActivityResult(
@@ -281,10 +315,10 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             .setPhoneNumberIdentifierSupported(true)
             .build()
 
-        val intent: PendingIntent = Credentials.getClient(context).getHintPickerIntent(hintRequest)
-        if (activity != null) {
+        val intent: PendingIntent = Credentials.getClient(mContext).getHintPickerIntent(hintRequest)
+        if (mActivity != null) {
             startIntentSenderForResult(
-                activity!!,
+                mActivity!!,
                 intent.intentSender,
                 CREDENTIAL_PICKER_REQUEST,
                 null,
@@ -299,7 +333,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     private fun unregisterReceiver(receiver: BroadcastReceiver?) {
         try {
             receiver?.let {
-                context.unregisterReceiver(it)
+                mContext.unregisterReceiver(it)
             }
         } catch (exception: Exception) {
             Log.e(TAG, "Unregistering receiver failed.", exception)
@@ -351,7 +385,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         override fun onReceive(context: Context, intent: Intent) {
             if (SmsRetriever.SMS_RETRIEVED_ACTION == intent.action) {
                 // Unregister consentReceiver after receiving data.
-                unregisterReceiver(consentReceiver);
+                unregisterReceiver(consentReceiver)
 
                 val extras = intent.extras
                 val smsRetrieverStatus = extras!!.get(SmsRetriever.EXTRA_STATUS) as Status
@@ -364,7 +398,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                         try {
                             // Start activity to show consent dialog to user, activity must be started in
                             // 5 minutes, otherwise you'll receive another TIMEOUT intent
-                            this@SmsRetrieverPlugin.activity?.startActivityForResult(
+                            this@SmsRetrieverPlugin.mActivity?.startActivityForResult(
                                 consentIntent,
                                 SMS_CONSENT_REQUEST
                             )
