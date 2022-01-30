@@ -49,8 +49,13 @@ class AndroidSmsRetriever {
         'deleteStoredPhoneNumber', {'url': url, 'phoneNumber': phoneNumber});
   }
 
-  /// Use this function to start listening for an incoming SMS. When sms received message will be returned.
+  @Deprecated('use [listenForSms]')
   static Future<String?> startSmsListener() async {
+    return listenForSms();
+  }
+
+  /// Use this function to start listening for an incoming SMS. When sms received message will be returned.
+  static Future<String?> listenForSms() async {
     final String? smsCode = await _channel.invokeMethod('startSmsListener');
     return smsCode;
   }
@@ -60,12 +65,29 @@ class AndroidSmsRetriever {
     await _channel.invokeMethod('stopSmsListener');
   }
 
+  @Deprecated('use [listenForOneTimeConsent]')
+  static Future<String?> requestOneTimeConsentSms({
+    String? senderPhoneNumber,
+  }) async {
+    return listenForOneTimeConsent(senderPhoneNumber: senderPhoneNumber);
+  }
+
   /// Using this function, when sms received android will ask user to let application use message and extract code, even if sms message does not contain application signature.
   /// You can pass sender phone number in order to detect messages sent from specific sender.
-  static Future<String?> requestOneTimeConsentSms(
-      {String? senderPhoneNumber}) async {
+  static Future<String?> listenForOneTimeConsent({
+    String? senderPhoneNumber,
+  }) async {
     final String? smsCode = await _channel.invokeMethod(
-        'requestOneTimeConsentSms', {'senderPhoneNumber': senderPhoneNumber});
+      'startConsentListener',
+      {
+        'senderPhoneNumber': senderPhoneNumber,
+      },
+    );
     return smsCode;
+  }
+
+  /// Stop listening for one time consent SMS. It's better to stop listener after getting message.
+  static Future<void> stopOneTimeConsentListener() async {
+    await _channel.invokeMethod('stopConsentListener');
   }
 }

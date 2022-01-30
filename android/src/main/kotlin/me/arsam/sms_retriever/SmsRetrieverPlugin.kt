@@ -350,6 +350,9 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     inner class ConsentBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (SmsRetriever.SMS_RETRIEVED_ACTION == intent.action) {
+                // Unregister consentReceiver after receiving data.
+                unregisterReceiver(consentReceiver);
+
                 val extras = intent.extras
                 val smsRetrieverStatus = extras!!.get(SmsRetriever.EXTRA_STATUS) as Status
 
@@ -361,12 +364,10 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                         try {
                             // Start activity to show consent dialog to user, activity must be started in
                             // 5 minutes, otherwise you'll receive another TIMEOUT intent
-                            if (this@SmsRetrieverPlugin.activity != null) {
-                                this@SmsRetrieverPlugin.activity!!.startActivityForResult(
-                                    consentIntent,
-                                    SMS_CONSENT_REQUEST
-                                )
-                            }
+                            this@SmsRetrieverPlugin.activity?.startActivityForResult(
+                                consentIntent,
+                                SMS_CONSENT_REQUEST
+                            )
                         } catch (e: ActivityNotFoundException) {
                             ignoreIllegalState {
                                 pendingResult?.success(null)

@@ -12,7 +12,7 @@ Flutter plugin for retrieving OTP code sent in sms automatically and without get
 Install
 ```yaml
 dependencies:
-  android_sms_retriever: ^1.2.3
+  android_sms_retriever: ^1.3.0
 ```
 
 Import
@@ -56,7 +56,7 @@ await AndroidSmsRetriever.deleteStoredPhoneNumber('https://arsam.me','0902777725
 ### Start listening for SMS
 Use this function to start listening for an incoming SMS. When sms received message will be returned.
 ```dart
-String? message = await AndroidSmsRetriever.startSmsListener();
+String? message = await AndroidSmsRetriever.listenForSms();
 ```
 
 ### Close receiver after getting SMS
@@ -69,7 +69,13 @@ AndroidSmsRetriever.stopSmsListener();
 Using this function, when sms received android will ask user to let application use message and extract code, even if sms message does not contain application signature.
 You can pass sender phone number in order to detect messages sent from specific sender.
 ```dart
-String? smsCode = await AndroidSmsRetriever.requestOneTimeConsentSms('+9850003001');
+String? smsCode = await AndroidSmsRetriever.listenForOneTimeConsent('+9850003001');
+```
+
+### Stop one time consent receiver
+By default, One time consent receiver will be stopped automatically after receiving sms or timeout. You can also stop it manually by calling `stopOneTimeConsentListener`.
+```dart
+AndroidSmsRetriever.stopOneTimeConsentListener();
 ```
 
 #### Note

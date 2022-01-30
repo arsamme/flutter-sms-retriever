@@ -1,3 +1,8 @@
+## 1.3.0
+- `startSmsListener` renamed to `listenForSms`
+- `requestOneTimeConsentSms` renamed to `listenForOneTimeConsent`
+- Added `stopOneTimeConsentListener` to stop consent receiver.
+
 ## 1.2.3
 - Stop receiver on `onDetachedFromActivity`
 - FIX: `Caused by java.lang.IllegalStateException: Reply already submitted`
