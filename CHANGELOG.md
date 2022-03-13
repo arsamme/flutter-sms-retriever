@@ -1,3 +1,9 @@
+## 1.3.2
+- FIX
+
+## 1.3.1
+- Added `SmsRetriever.SEND_PERMISSION` permission
+
 ## 1.3.0
 - `startSmsListener` renamed to `listenForSms`
 - `requestOneTimeConsentSms` renamed to `listenForOneTimeConsent`

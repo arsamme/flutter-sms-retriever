@@ -211,8 +211,9 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 smsReceiver = SmsBroadcastReceiver()
                 mContext.registerReceiver(
                     smsReceiver,
+                    IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION),
                     SmsRetriever.SEND_PERMISSION,
-                    IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
+                    null,
                 )
                 SmsRetriever.getClient(mContext).startSmsRetriever()
             }
@@ -225,8 +226,9 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 consentReceiver = ConsentBroadcastReceiver()
                 mContext.registerReceiver(
                     consentReceiver,
+                    IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION),
                     SmsRetriever.SEND_PERMISSION,
-                    IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
+                    null,
                 )
                 SmsRetriever.getClient(mContext).startSmsUserConsent(
                     call.argument("senderPhoneNumber")
