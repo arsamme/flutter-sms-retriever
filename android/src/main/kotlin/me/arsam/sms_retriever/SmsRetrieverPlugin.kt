@@ -27,7 +27,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry
 
 class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
-    PluginRegistry.ActivityResultListener {
+        PluginRegistry.ActivityResultListener {
 
     private lateinit var mContext: Context
     private var mActivity: FlutterActivity? = null
@@ -44,7 +44,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         mContext = flutterPluginBinding.applicationContext
 
         mChannel =
-            MethodChannel(flutterPluginBinding.binaryMessenger, "ars_sms_retriever/method_ch")
+                MethodChannel(flutterPluginBinding.binaryMessenger, "ars_sms_retriever/method_ch")
         mChannel?.setMethodCallHandler(this)
     }
 
@@ -116,7 +116,7 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val url: String? = call.argument<String?>("url")
                 val phoneNumber: String? = call.argument<String?>("phoneNumber")
                 val credential: Credential =
-                    Credential.Builder(phoneNumber).setAccountType(url).build()
+                        Credential.Builder(phoneNumber).setAccountType(url).build()
 
                 val mCredentialsClient = Credentials.getClient(mContext)
                 mCredentialsClient.save(credential).addOnCompleteListener { task ->
@@ -132,8 +132,8 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                                     pendingResult = result
                                     if (mActivity != null) {
                                         e.startResolutionForResult(
-                                            mActivity as Activity,
-                                            STORE_PHONE_NUMBER_REQUEST
+                                                mActivity as Activity,
+                                                STORE_PHONE_NUMBER_REQUEST
                                         )
                                     }
                                 } catch (exception: IntentSender.SendIntentException) {
@@ -156,50 +156,50 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val mCredentialsClient: CredentialsClient = Credentials.getClient(mContext)
                 val mCredentialRequest = CredentialRequest.Builder().setAccountTypes(url).build()
                 mCredentialsClient.request(mCredentialRequest).addOnCompleteListener(
-                    OnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            // See "Handle successful credential requests"
-                            if (task.result != null) {
-                                val credential: Credential? = task.result!!.credential
-                                if (credential != null) {
-                                    result.success(credential.id)
-                                    return@OnCompleteListener
+                        OnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                // See "Handle successful credential requests"
+                                if (task.result != null) {
+                                    val credential: Credential? = task.result!!.credential
+                                    if (credential != null) {
+                                        result.success(credential.id)
+                                        return@OnCompleteListener
+                                    }
                                 }
-                            }
-                            result.success(null)
-                        } else {
-                            val e = task.exception
-                            if (e is ResolvableApiException) {
-                                // Try to resolve the save request. This will prompt the user if
-                                // the credential is new.
-                                if (e.statusCode == RESOLUTION_REQUIRED) {
-                                    try {
-                                        pendingResult = result
-                                        if (mActivity != null) {
-                                            e.startResolutionForResult(
-                                                mActivity as Activity,
-                                                RETRIEVE_PHONE_NUMBER_REQUEST
-                                            )
+                                result.success(null)
+                            } else {
+                                val e = task.exception
+                                if (e is ResolvableApiException) {
+                                    // Try to resolve the save request. This will prompt the user if
+                                    // the credential is new.
+                                    if (e.statusCode == RESOLUTION_REQUIRED) {
+                                        try {
+                                            pendingResult = result
+                                            if (mActivity != null) {
+                                                e.startResolutionForResult(
+                                                        mActivity as Activity,
+                                                        RETRIEVE_PHONE_NUMBER_REQUEST
+                                                )
+                                            }
+                                        } catch (exception: IntentSender.SendIntentException) {
+                                            // Could not resolve the request
+                                            Log.e(TAG, "Failed to send resolution.", exception)
+                                            result.success(null)
                                         }
-                                    } catch (exception: IntentSender.SendIntentException) {
-                                        // Could not resolve the request
-                                        Log.e(TAG, "Failed to send resolution.", exception)
+                                    } else {
                                         result.success(null)
                                     }
                                 } else {
                                     result.success(null)
                                 }
-                            } else {
-                                result.success(null)
                             }
-                        }
-                    })
+                        })
             }
             "deleteStoredPhoneNumber" -> {
                 val url: String? = call.argument<String?>("url")
                 val phoneNumber: String? = call.argument<String?>("phoneNumber")
                 val credential: Credential =
-                    Credential.Builder(phoneNumber).setAccountType(url).build()
+                        Credential.Builder(phoneNumber).setAccountType(url).build()
 
                 val mCredentialsClient: CredentialsClient = Credentials.getClient(mContext)
                 mCredentialsClient.delete(credential).addOnCompleteListener {
@@ -210,10 +210,10 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 pendingResult = result
                 smsReceiver = SmsBroadcastReceiver()
                 mContext.registerReceiver(
-                    smsReceiver,
-                    IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION),
-                    SmsRetriever.SEND_PERMISSION,
-                    null,
+                        smsReceiver,
+                        IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION),
+                        SmsRetriever.SEND_PERMISSION,
+                        null,
                 )
                 SmsRetriever.getClient(mContext).startSmsRetriever()
             }
@@ -225,13 +225,13 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 pendingResult = result
                 consentReceiver = ConsentBroadcastReceiver()
                 mContext.registerReceiver(
-                    consentReceiver,
-                    IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION),
-                    SmsRetriever.SEND_PERMISSION,
-                    null,
+                        consentReceiver,
+                        IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION),
+                        SmsRetriever.SEND_PERMISSION,
+                        null,
                 )
                 SmsRetriever.getClient(mContext).startSmsUserConsent(
-                    call.argument("senderPhoneNumber")
+                        call.argument("senderPhoneNumber")
                 )
             }
             "stopConsentListener" -> {
@@ -244,9 +244,9 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     // Obtain the phone number from the result
     override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        @Nullable data: Intent?
+            requestCode: Int,
+            resultCode: Int,
+            @Nullable data: Intent?
     ): Boolean {
         when (requestCode) {
             CREDENTIAL_PICKER_REQUEST -> {
@@ -316,30 +316,28 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     private fun requestPhoneNumber() {
         val hintRequest: HintRequest = Builder()
-            .setPhoneNumberIdentifierSupported(true)
-            .build()
+                .setPhoneNumberIdentifierSupported(true)
+                .build()
 
         val intent: PendingIntent = Credentials.getClient(mContext).getHintPickerIntent(hintRequest)
         if (mActivity != null) {
             startIntentSenderForResult(
-                mActivity!!,
-                intent.intentSender,
-                CREDENTIAL_PICKER_REQUEST,
-                null,
-                0,
-                0,
-                0,
-                null
+                    mActivity!!,
+                    intent.intentSender,
+                    CREDENTIAL_PICKER_REQUEST,
+                    null,
+                    0,
+                    0,
+                    0,
+                    null
             )
         }
     }
 
     private fun unregisterReceiver(receiver: BroadcastReceiver?) {
         receiver?.let {
-            try {
+            safeExecute {
                 mContext.unregisterReceiver(it)
-            } catch (exception: Exception) {
-                Log.e(TAG, "Unregistering receiver failed.", exception)
             }
         }
     }
@@ -349,8 +347,19 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             fn()
         } catch (e: IllegalStateException) {
             Log.d(
-                TAG,
-                "ignoring exception: $e. See https://github.com/flutter/flutter/issues/29092 for details."
+                    TAG,
+                    "ignoring exception: $e. See https://github.com/flutter/flutter/issues/29092 for details."
+            )
+        }
+    }
+
+    private fun safeExecute(fn: () -> Unit) {
+        try {
+            fn()
+        } catch (e: Exception) {
+            Log.d(
+                    TAG,
+                    "ignoring exception: $e."
             )
         }
     }
@@ -398,13 +407,13 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     CommonStatusCodes.SUCCESS -> {
                         // Get consent intent
                         val consentIntent =
-                            extras.getParcelable<Intent>(SmsRetriever.EXTRA_CONSENT_INTENT)
+                                extras.getParcelable<Intent>(SmsRetriever.EXTRA_CONSENT_INTENT)
                         try {
                             // Start activity to show consent dialog to user, activity must be started in
                             // 5 minutes, otherwise you'll receive another TIMEOUT intent
                             this@SmsRetrieverPlugin.mActivity?.startActivityForResult(
-                                consentIntent,
-                                SMS_CONSENT_REQUEST
+                                    consentIntent,
+                                    SMS_CONSENT_REQUEST
                             )
                         } catch (e: ActivityNotFoundException) {
                             ignoreIllegalState {
