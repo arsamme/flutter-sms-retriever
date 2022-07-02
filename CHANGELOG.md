@@ -1,3 +1,6 @@
+## 1.3.3
+- Safe execute unregister receiver
+
 ## 1.3.2
 - FIX
 
