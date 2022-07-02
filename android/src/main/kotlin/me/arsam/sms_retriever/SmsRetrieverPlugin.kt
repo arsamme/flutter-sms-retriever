@@ -335,12 +335,12 @@ class SmsRetrieverPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     }
 
     private fun unregisterReceiver(receiver: BroadcastReceiver?) {
-        try {
-            receiver?.let {
+        receiver?.let {
+            try {
                 mContext.unregisterReceiver(it)
+            } catch (exception: Exception) {
+                Log.e(TAG, "Unregistering receiver failed.", exception)
             }
-        } catch (exception: Exception) {
-            Log.e(TAG, "Unregistering receiver failed.", exception)
         }
     }
 
